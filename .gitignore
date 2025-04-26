@@ -1,41 +1,101 @@
-# Compiled Lua sources
-luac.out
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
-# luarocks build files
-*.src.rock
-*.zip
-*.tar.gz
+-- Giao diện hiển thị số người chơi
+local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+local playerCountLabel = Instance.new("TextLabel")
+playerCountLabel.Size = UDim2.new(0, 200, 0, 50)
+playerCountLabel.Position = UDim2.new(0, 10, 0, 10)
+playerCountLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+playerCountLabel.TextColor3 = Color3.new(1, 1, 1)
+playerCountLabel.TextScaled = true
+playerCountLabel.Text = "Players: 0"
+playerCountLabel.Parent = screenGui
 
-# Object files
-*.o
-*.os
-*.ko
-*.obj
-*.elf
+-- Highlight người chơi khác
+local function highlightOthers()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local function apply(player)
+                local char = player.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    -- Xóa hết highlight cũ
+                    for _, v in pairs(char:GetChildren()) do
+                        if v:IsA("Highlight") then v:Destroy() end
+                    end
 
-# Precompiled Headers
-*.gch
-*.pch
+                    -- Tạo highlight mới đậm hơn
+                    local h = Instance.new("Highlight")
+                    h.FillTransparency = 0.4 -- đậm hơn
+                    h.FillColor = Color3.fromRGB(255, 255, 255)
+                    h.OutlineColor = Color3.fromRGB(0, 170, 255)
+                    h.OutlineTransparency = 0 -- viền nét hơn
+                    h.Adornee = char
+                    h.Parent = char
+                end
+            end
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-*.def
-*.exp
+            apply(p)
+            p.CharacterAdded:Connect(function()
+                wait(0.5)
+                apply(p)
+            end)
+        end
+    end
+end
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+-- Cập nhật số người chơi và highlight
+local function updateAll()
+    playerCountLabel.Text = "Players: " .. tostring(#Players:GetPlayers())
+    highlightOthers()
+end
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+updateAll()
+Players.PlayerAdded:Connect(updateAll)
+Players.PlayerRemoving:Connect(updateAll)
 
+-- Aim Bot khi nhấn phím E
+local aiming = false
+
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == Enum.KeyCode.E then
+        aiming = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, processed)
+    if input.KeyCode == Enum.KeyCode.E then
+        aiming = false
+    end
+end)
+
+-- Smooth Aim (tốc độ nhanh hơn chút nhưng vẫn mượt)
+RunService.RenderStepped:Connect(function()
+    if aiming then
+        local closestPlayer = nil
+        local closestDistance = math.huge
+        local mouseLocation = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                local headPos, onScreen = Camera:WorldToViewportPoint(player.Character.Head.Position)
+                if onScreen then
+                    local dist = (Vector2.new(headPos.X, headPos.Y) - mouseLocation).Magnitude
+                    if dist < closestDistance then
+                        closestDistance = dist
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+
+        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+            local targetPos = closestPlayer.Character.Head.Position
+            local smoothSpeed = 0.35 -- tốc độ nhanh hơn
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), smoothSpeed)
+        end
+    end
+end)
