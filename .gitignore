@@ -2,15 +2,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
-local Workspace = game:GetService("Workspace")
-local CoreGui = game:GetService("CoreGui")
-
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-
--- Tăng tốc độ di chuyển khi khởi động
-Humanoid.WalkSpeed = 100
 
 -- Giao diện hiển thị số người chơi
 local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
@@ -23,29 +15,6 @@ playerCountLabel.TextScaled = true
 playerCountLabel.Text = "Players: 0"
 playerCountLabel.Parent = screenGui
 
--- Intro Made by $VC
-local introLabel = Instance.new("TextLabel")
-introLabel.Size = UDim2.new(0, 600, 0, 100)
-introLabel.Position = UDim2.new(0.5, -300, 0.4, 0)
-introLabel.BackgroundTransparency = 1
-introLabel.Text = "Made by: $VC"
-introLabel.TextColor3 = Color3.fromRGB(180, 0, 255) -- Màu tím
-introLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-introLabel.TextStrokeTransparency = 0.3
-introLabel.Font = Enum.Font.GothamBold
-introLabel.TextScaled = true
-introLabel.Parent = screenGui
-
-task.spawn(function()
-    wait(3)
-    for i = 0, 1, 0.05 do
-        introLabel.TextTransparency = i
-        introLabel.TextStrokeTransparency = 0.3 + i * 0.7
-        wait(0.05)
-    end
-    introLabel:Destroy()
-end)
-
 -- Highlight người chơi khác
 local function highlightOthers()
     for _, p in pairs(Players:GetPlayers()) do
@@ -53,15 +22,17 @@ local function highlightOthers()
             local function apply(player)
                 local char = player.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
+                    -- Xóa hết highlight cũ
                     for _, v in pairs(char:GetChildren()) do
                         if v:IsA("Highlight") then v:Destroy() end
                     end
 
+                    -- Tạo highlight mới đậm hơn
                     local h = Instance.new("Highlight")
-                    h.FillTransparency = 0.4
+                    h.FillTransparency = 0.4 -- đậm hơn
                     h.FillColor = Color3.fromRGB(255, 255, 255)
-                    h.OutlineColor = Color3.fromRGB(180, 0, 255) -- Outline tím
-                    h.OutlineTransparency = 0
+                    h.OutlineColor = Color3.fromRGB(0, 170, 255)
+                    h.OutlineTransparency = 0 -- viền nét hơn
                     h.Adornee = char
                     h.Parent = char
                 end
@@ -76,6 +47,7 @@ local function highlightOthers()
     end
 end
 
+-- Cập nhật số người chơi và highlight
 local function updateAll()
     playerCountLabel.Text = "Players: " .. tostring(#Players:GetPlayers())
     highlightOthers()
@@ -100,7 +72,7 @@ UserInputService.InputEnded:Connect(function(input, processed)
     end
 end)
 
--- Smooth Aim nhanh hơn
+-- Smooth Aim (tốc độ nhanh hơn chút nhưng vẫn mượt)
 RunService.RenderStepped:Connect(function()
     if aiming then
         local closestPlayer = nil
@@ -122,19 +94,43 @@ RunService.RenderStepped:Connect(function()
 
         if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
             local targetPos = closestPlayer.Character.Head.Position
-            local smoothSpeed = 0.55 -- Tốc độ nhanh hơn
+            local smoothSpeed = 0.35 -- tốc độ nhanh hơn
             Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), smoothSpeed)
         end
     end
 end)
 
--- GUI Neon (Noclip cũ)
-local NoclipGui = Instance.new("ScreenGui", CoreGui)
+-- Intro: "Made by: $VC" hiển thị ở giữa màn hình trong 3 giây rồi mờ đi
+local introText = Instance.new("TextLabel")
+introText.Size = UDim2.new(0, 400, 0, 50)
+introText.Position = UDim2.new(0.5, -200, 0.5, -25)
+introText.BackgroundTransparency = 1
+introText.Text = "Made by: $VC"
+introText.TextColor3 = Color3.fromRGB(180, 0, 255) -- Màu tím
+introText.TextScaled = true
+introText.Font = Enum.Font.GothamBold
+introText.TextStrokeTransparency = 0.5
+introText.TextStrokeColor3 = Color3.fromRGB(100, 0, 200)
+introText.Parent = screenGui
+
+-- Fade effect (mờ dần)
+local fadeTime = 3
+local transparency = 1
+
+for i = 1, fadeTime * 60 do
+    introText.TextTransparency = transparency
+    transparency = transparency - (1 / (fadeTime * 60))
+    wait(1/60)
+end
+introText:Destroy()
+
+-- Neon (tăng tốc độ di chuyển lên 100 khi bật)
+local NoclipGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 NoclipGui.Name = "Neon"
 
 local BG = Instance.new("Frame", NoclipGui)
-BG.BackgroundColor3 = Color3.new(0.098, 0.098, 0.098)
-BG.BorderColor3 = Color3.new(0.058, 0.058, 0.058)
+BG.BackgroundColor3 = Color3.fromRGB(0.098, 0.098, 0.098)
+BG.BorderColor3 = Color3.fromRGB(0.058, 0.058, 0.058)
 BG.BorderSizePixel = 2
 BG.Position = UDim2.new(0.149, 0, 0.82, 0)
 BG.Size = UDim2.new(0, 210, 0, 127)
@@ -142,12 +138,12 @@ BG.Active = true
 BG.Draggable = true
 
 local Title = Instance.new("TextLabel", BG)
-Title.BackgroundColor3 = Color3.fromRGB(180, 0, 255) -- Tím
+Title.BackgroundColor3 = Color3.fromRGB(180, 0, 255) -- Màu tím
 Title.BorderColor3 = Color3.fromRGB(100, 0, 200)
 Title.Size = UDim2.new(0, 210, 0, 33)
 Title.Font = Enum.Font.Highway
 Title.Text = "Neon"
-Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.TextStrokeColor3 = Color3.fromRGB(80, 0, 180)
 Title.TextStrokeTransparency = 0
@@ -159,7 +155,7 @@ Toggle.Position = UDim2.new(0.15, 0, 0.37, 0)
 Toggle.Size = UDim2.new(0, 146, 0, 36)
 Toggle.Font = Enum.Font.Highway
 Toggle.Text = "Toggle"
-Toggle.TextColor3 = Color3.new(1, 1, 1)
+Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 Toggle.TextScaled = true
 Toggle.TextStrokeColor3 = Color3.fromRGB(80, 0, 180)
 
@@ -169,7 +165,7 @@ StatusPF.Position = UDim2.new(0.31, 0, 0.71, 0)
 StatusPF.Size = UDim2.new(0, 56, 0, 20)
 StatusPF.Font = Enum.Font.Highway
 StatusPF.Text = "Status:"
-StatusPF.TextColor3 = Color3.new(1, 1, 1)
+StatusPF.TextColor3 = Color3.fromRGB(255, 255, 255)
 StatusPF.TextScaled = true
 
 local Status = Instance.new("TextLabel", BG)
@@ -181,31 +177,29 @@ Status.Text = "off"
 Status.TextColor3 = Color3.fromRGB(170, 0, 0)
 Status.TextScaled = true
 
--- Noclip Toggle
+-- Tăng tốc độ di chuyển
 local Clipon = false
 Toggle.MouseButton1Click:Connect(function()
     if Status.Text == "off" then
         Clipon = true
         Status.Text = "on"
-        Status.TextColor3 = Color3.new(0, 1, 0)
-        Stepped = RunService.Stepped:Connect(function()
-            if Clipon then
-                for _, b in pairs(Workspace:GetChildren()) do
-                    if b.Name == LocalPlayer.Name then
-                        for _, v in pairs(b:GetChildren()) do
-                            if v:IsA("BasePart") then
-                                v.CanCollide = false
-                            end
-                        end
-                    end
-                end
-            else
-                Stepped:Disconnect()
-            end
-        end)
+        Status.TextColor3 = Color3.fromRGB(0, 255, 0)
+        
+        -- Tăng tốc độ di chuyển lên 100
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = 100
+        end
+
     else
         Clipon = false
         Status.Text = "off"
         Status.TextColor3 = Color3.fromRGB(170, 0, 0)
+        
+        -- Đặt lại tốc độ di chuyển
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = 16 -- Tốc độ mặc định của nhân vật
+        end
     end
 end)
