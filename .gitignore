@@ -178,28 +178,33 @@ Status.Text = "off"
 Status.TextColor3 = Color3.fromRGB(170, 0, 0)
 Status.TextScaled = true
 
--- Tăng tốc độ di chuyển liên tục
+-- Tăng tốc độ di chuyển liên tục khi nhấn Shift
 local Clipon = false
-Toggle.MouseButton1Click:Connect(function()
-    if Status.Text == "off" then
-        Clipon = true
-        Status.Text = "on"
-        Status.TextColor3 = Color3.fromRGB(0, 255, 0)
-        
-        -- Tăng tốc độ di chuyển lên 50
-        local character = LocalPlayer.Character
-        if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.WalkSpeed = 50
-        end
-
-        -- Duy trì tốc độ liên tục
-        RunService.Heartbeat:Connect(function()
-            if Clipon and character and character:FindFirstChild("Humanoid") then
+UserInputService.InputBegan:Connect(function(input, processed)
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        if Status.Text == "off" then
+            Clipon = true
+            Status.Text = "on"
+            Status.TextColor3 = Color3.fromRGB(0, 255, 0)
+            
+            -- Tăng tốc độ di chuyển lên 50
+            local character = LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
                 character.Humanoid.WalkSpeed = 50
             end
-        end)
-        
-    else
+
+            -- Duy trì tốc độ liên tục
+            RunService.Heartbeat:Connect(function()
+                if Clipon and character and character:FindFirstChild("Humanoid") then
+                    character.Humanoid.WalkSpeed = 50
+                end
+            end)
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, processed)
+    if input.KeyCode == Enum.KeyCode.LeftShift then
         Clipon = false
         Status.Text = "off"
         Status.TextColor3 = Color3.fromRGB(170, 0, 0)
