@@ -15,7 +15,7 @@ playerCountLabel.TextScaled = true
 playerCountLabel.Text = "Players: 0"
 playerCountLabel.Parent = screenGui
 
--- Highlight người chơi khác (ESP) với màu tím
+-- Highlight người chơi khác (ESP) với viền tím và phần phủ trắng
 local function highlightOthers()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
@@ -27,11 +27,11 @@ local function highlightOthers()
                         if v:IsA("Highlight") then v:Destroy() end
                     end
 
-                    -- Tạo highlight mới với màu tím
+                    -- Tạo highlight mới với phần phủ trắng và viền tím
                     local h = Instance.new("Highlight")
                     h.FillTransparency = 0.4 -- đậm hơn
-                    h.FillColor = Color3.fromRGB(180, 0, 255) -- Màu tím
-                    h.OutlineColor = Color3.fromRGB(100, 0, 200) -- Viền màu tím
+                    h.FillColor = Color3.fromRGB(255, 255, 255) -- Màu trắng
+                    h.OutlineColor = Color3.fromRGB(180, 0, 255) -- Viền màu tím
                     h.OutlineTransparency = 0 -- Viền nét rõ ràng
                     h.Adornee = char
                     h.Parent = char
