@@ -1,101 +1,82 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
+-- Full Script Vc
 
--- Giao diện hiển thị số người chơi
-local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-local playerCountLabel = Instance.new("TextLabel")
-playerCountLabel.Size = UDim2.new(0, 200, 0, 50)
-playerCountLabel.Position = UDim2.new(0, 10, 0, 10)
-playerCountLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-playerCountLabel.TextColor3 = Color3.new(1, 1, 1)
-playerCountLabel.TextScaled = true
-playerCountLabel.Text = "Players: 0"
-playerCountLabel.Parent = screenGui
+local Players = game:GetService("Players") local RunService = game:GetService("RunService") local UserInputService = game:GetService("UserInputService") local Camera = workspace.CurrentCamera local LocalPlayer = Players.LocalPlayer local Workspace = game:GetService("Workspace") local CoreGui = game:GetService("CoreGui")
 
--- Highlight người chơi khác
-local function highlightOthers()
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            local function apply(player)
-                local char = player.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    -- Xóa hết highlight cũ
-                    for _, v in pairs(char:GetChildren()) do
-                        if v:IsA("Highlight") then v:Destroy() end
-                    end
+-- Hiệu ứng Made by: $VC local introGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui")) local introLabel = Instance.new("TextLabel", introGui) introLabel.Size = UDim2.new(1, 0, 1, 0) introLabel.BackgroundTransparency = 1 introLabel.Text = "Made by: $VC" introLabel.Font = Enum.Font.GothamBold introLabel.TextColor3 = Color3.fromRGB(170, 0, 255) introLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) introLabel.TextStrokeTransparency = 0 introLabel.TextScaled = true
 
-                    -- Tạo highlight mới đậm hơn
-                    local h = Instance.new("Highlight")
-                    h.FillTransparency = 0.4 -- đậm hơn
-                    h.FillColor = Color3.fromRGB(255, 255, 255)
-                    h.OutlineColor = Color3.fromRGB(0, 170, 255)
-                    h.OutlineTransparency = 0 -- viền nét hơn
-                    h.Adornee = char
-                    h.Parent = char
-                end
+spawn(function() wait(3) for i = 0, 1, 0.05 do introLabel.TextTransparency = i introLabel.TextStrokeTransparency = i wait(0.05) end introGui:Destroy() end)
+
+-- Giao diện hiển thị số người chơi local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui")) local playerCountLabel = Instance.new("TextLabel") playerCountLabel.Size = UDim2.new(0, 200, 0, 50) playerCountLabel.Position = UDim2.new(0, 10, 0, 10) playerCountLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30) playerCountLabel.TextColor3 = Color3.new(1, 1, 1) playerCountLabel.TextScaled = true playerCountLabel.Text = "Players: 0" playerCountLabel.Parent = screenGui
+
+-- Highlight người chơi khác local function highlightOthers() for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then local function apply(player) local char = player.Character if char and char:FindFirstChild("HumanoidRootPart") then for _, v in pairs(char:GetChildren()) do if v:IsA("Highlight") then v:Destroy() end end
+
+local h = Instance.new("Highlight")
+                h.FillTransparency = 0.4
+                h.FillColor = Color3.fromRGB(255, 255, 255)
+                h.OutlineColor = Color3.fromRGB(170, 0, 255)
+                h.OutlineTransparency = 0
+                h.Adornee = char
+                h.Parent = char
             end
+        end
 
+        apply(p)
+        p.CharacterAdded:Connect(function()
+            wait(0.5)
             apply(p)
-            p.CharacterAdded:Connect(function()
-                wait(0.5)
-                apply(p)
-            end)
-        end
+        end)
     end
 end
 
--- Cập nhật số người chơi và highlight
-local function updateAll()
-    playerCountLabel.Text = "Players: " .. tostring(#Players:GetPlayers())
-    highlightOthers()
 end
 
-updateAll()
-Players.PlayerAdded:Connect(updateAll)
-Players.PlayerRemoving:Connect(updateAll)
+-- Cập nhật số người chơi và highlight local function updateAll() playerCountLabel.Text = "Players: " .. tostring(#Players:GetPlayers()) highlightOthers() end
 
--- Aim Bot khi nhấn phím E
-local aiming = false
+updateAll() Players.PlayerAdded:Connect(updateAll) Players.PlayerRemoving:Connect(updateAll)
 
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.E then
-        aiming = true
-    end
-end)
+-- Aim Bot khi nhấn phím E local aiming = false
 
-UserInputService.InputEnded:Connect(function(input, processed)
-    if input.KeyCode == Enum.KeyCode.E then
-        aiming = false
-    end
-end)
+UserInputService.InputBegan:Connect(function(input, processed) if not processed and input.KeyCode == Enum.KeyCode.E then aiming = true end end)
 
--- Smooth Aim (tốc độ nhanh hơn chút nhưng vẫn mượt)
-RunService.RenderStepped:Connect(function()
-    if aiming then
-        local closestPlayer = nil
-        local closestDistance = math.huge
-        local mouseLocation = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+UserInputService.InputEnded:Connect(function(input, processed) if input.KeyCode == Enum.KeyCode.E then aiming = false end end)
 
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                local headPos, onScreen = Camera:WorldToViewportPoint(player.Character.Head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(headPos.X, headPos.Y) - mouseLocation).Magnitude
-                    if dist < closestDistance then
-                        closestDistance = dist
-                        closestPlayer = player
-                    end
+-- Smooth Aim tốc độ cao hơn RunService.RenderStepped:Connect(function() if aiming then local closestPlayer = nil local closestDistance = math.huge local mouseLocation = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local headPos, onScreen = Camera:WorldToViewportPoint(player.Character.Head.Position)
+            if onScreen then
+                local dist = (Vector2.new(headPos.X, headPos.Y) - mouseLocation).Magnitude
+                if dist < closestDistance then
+                    closestDistance = dist
+                    closestPlayer = player
                 end
             end
         end
-
-        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
-            local targetPos = closestPlayer.Character.Head.Position
-            local smoothSpeed = 0.35 -- tốc độ nhanh hơn
-            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), smoothSpeed)
-        end
     end
+
+    if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+        local targetPos = closestPlayer.Character.Head.Position
+        local smoothSpeed = 0.6 -- tốc độ nhanh hơn
+        Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), smoothSpeed)
+    end
+end
+
 end)
+
+-- Noclip GUI local Noclip = Instance.new("ScreenGui") local BG = Instance.new("Frame") local Title = Instance.new("TextLabel") local Toggle = Instance.new("TextButton") local StatusPF = Instance.new("TextLabel") local Status = Instance.new("TextLabel") local Plr = Players.LocalPlayer local Clipon = false
+
+Noclip.Name = "Noclip" Noclip.Parent = game.CoreGui
+
+BG.Name = "BG" BG.Parent = Noclip BG.BackgroundColor3 = Color3.new(0.0980392, 0.0980392, 0.0980392) BG.BorderColor3 = Color3.new(0.0588235, 0.0588235, 0.0588235) BG.BorderSizePixel = 2 BG.Position = UDim2.new(0.149479166, 0, 0.82087779, 0) BG.Size = UDim2.new(0, 210, 0, 127) BG.Active = true BG.Draggable = true
+
+Title.Name = "Title" Title.Parent = BG Title.BackgroundColor3 = Color3.fromRGB(170, 0, 255) Title.BorderColor3 = Color3.fromRGB(100, 0, 150) Title.BorderSizePixel = 2 Title.Size = UDim2.new(0, 210, 0, 33) Title.Font = Enum.Font.GothamBold Title.Text = "Noclip" Title.TextColor3 = Color3.new(1, 1, 1) Title.FontSize = Enum.FontSize.Size32 Title.TextSize = 30 Title.TextStrokeColor3 = Color3.new(0, 0, 0) Title.TextStrokeTransparency = 0
+
+Toggle.Parent = BG Toggle.BackgroundColor3 = Color3.fromRGB(170, 0, 255) Toggle.BorderColor3 = Color3.fromRGB(100, 0, 150) Toggle.BorderSizePixel = 2 Toggle.Position = UDim2.new(0.152380958, 0, 0.374192119, 0) Toggle.Size = UDim2.new(0, 146, 0, 36) Toggle.Font = Enum.Font.GothamBold Toggle.FontSize = Enum.FontSize.Size28 Toggle.Text = "Toggle" Toggle.TextColor3 = Color3.new(1, 1, 1) Toggle.TextSize = 25 Toggle.TextStrokeColor3 = Color3.new(0, 0, 0) Toggle.TextStrokeTransparency = 0
+
+StatusPF.Name = "StatusPF" StatusPF.Parent = BG StatusPF.BackgroundColor3 = Color3.new(1, 1, 1) StatusPF.BackgroundTransparency = 1 StatusPF.Position = UDim2.new(0.314285725, 0, 0.708661377, 0) StatusPF.Size = UDim2.new(0, 56, 0, 20) StatusPF.Font = Enum.Font.GothamBold StatusPF.FontSize = Enum.FontSize.Size24 StatusPF.Text = "Status:" StatusPF.TextColor3 = Color3.new(1, 1, 1) StatusPF.TextSize = 20 StatusPF.TextStrokeColor3 = Color3.new(0.333333, 0.333333, 0.333333) StatusPF.TextStrokeTransparency = 0 StatusPF.TextWrapped = true
+
+Status.Name = "Status" Status.Parent = BG Status.BackgroundColor3 = Color3.new(1, 1, 1) Status.BackgroundTransparency = 1 Status.Position = UDim2.new(0.580952346, 0, 0.708661377, 0) Status.Size = UDim2.new(0, 56, 0, 20) Status.Font = Enum.Font.GothamBold Status.FontSize = Enum.FontSize.Size14 Status.Text = "off" Status.TextColor3 = Color3.new(0.666667, 0, 0) Status.TextScaled = true Status.TextSize = 14 Status.TextStrokeColor3 = Color3.new(0, 0, 0) Status.TextWrapped = true Status.TextXAlignment = Enum.TextXAlignment.Left
+
+Toggle.MouseButton1Click:connect(function() if Status.Text == "off" then Clipon = true Status.Text = "on" Status.TextColor3 = Color3.new(0, 1, 0) Stepped = game:GetService("RunService").Stepped:Connect(function() if Clipon then for a, b in pairs(Workspace:GetChildren()) do if b.Name == Plr.Name then for i, v in pairs(Workspace[Plr.Name]:GetChildren()) do if v:IsA("BasePart") then v.CanCollide = false end end end end else Stepped:Disconnect() end end) elseif Status.Text == "on" then Clipon = false Status.Text = "off" Status.TextColor3 = Color3.new(1, 0, 0) end end)
+
