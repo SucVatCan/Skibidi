@@ -178,27 +178,46 @@ Status.Text = "off"
 Status.TextColor3 = Color3.fromRGB(170, 0, 0)
 Status.TextScaled = true
 
--- Tăng tốc độ di chuyển liên tục khi nhấn Shift
+-- Tăng tốc độ di chuyển khi nhấn Shift hoặc Toggle
 local Clipon = false
+
+-- Khi nhấn Toggle
+Toggle.MouseButton1Click:Connect(function()
+    if Clipon then
+        -- Tắt Neon
+        Clipon = false
+        Status.Text = "off"
+        Status.TextColor3 = Color3.fromRGB(170, 0, 0)
+        -- Đặt lại tốc độ di chuyển
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = 16
+        end
+    else
+        -- Kích hoạt Neon
+        Clipon = true
+        Status.Text = "on"
+        Status.TextColor3 = Color3.fromRGB(0, 255, 0)
+        -- Tăng tốc độ di chuyển lên 50
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = 50
+        end
+    end
+end)
+
+-- Khi nhấn Shift
 UserInputService.InputBegan:Connect(function(input, processed)
     if input.KeyCode == Enum.KeyCode.LeftShift then
-        if Status.Text == "off" then
+        if not Clipon then
             Clipon = true
             Status.Text = "on"
             Status.TextColor3 = Color3.fromRGB(0, 255, 0)
-            
             -- Tăng tốc độ di chuyển lên 50
             local character = LocalPlayer.Character
             if character and character:FindFirstChild("Humanoid") then
                 character.Humanoid.WalkSpeed = 50
             end
-
-            -- Duy trì tốc độ liên tục
-            RunService.Heartbeat:Connect(function()
-                if Clipon and character and character:FindFirstChild("Humanoid") then
-                    character.Humanoid.WalkSpeed = 50
-                end
-            end)
         end
     end
 end)
@@ -208,11 +227,10 @@ UserInputService.InputEnded:Connect(function(input, processed)
         Clipon = false
         Status.Text = "off"
         Status.TextColor3 = Color3.fromRGB(170, 0, 0)
-        
         -- Đặt lại tốc độ di chuyển
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.WalkSpeed = 16 -- Tốc độ mặc định của nhân vật
+            character.Humanoid.WalkSpeed = 16
         end
     end
 end)
