@@ -3,133 +3,10 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
-
--- Giao diện hiển thị số người chơi
-local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-local playerCountLabel = Instance.new("TextLabel")
-playerCountLabel.Size = UDim2.new(0, 200, 0, 50)
-playerCountLabel.Position = UDim2.new(0, 10, 0, 10)
-playerCountLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-playerCountLabel.TextColor3 = Color3.new(1, 1, 1)
-playerCountLabel.TextScaled = true
-playerCountLabel.Text = "Players: 0"
-playerCountLabel.Parent = screenGui
-
--- Highlight người chơi khác (ESP) với viền tím và phần phủ trắng
-local function highlightOthers()
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            local function apply(player)
-                local char = player.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    -- Xóa hết highlight cũ
-                    for _, v in pairs(char:GetChildren()) do
-                        if v:IsA("Highlight") then v:Destroy() end
-                    end
-
-                    -- Tạo highlight mới với phần phủ trắng và viền tím
-                    local h = Instance.new("Highlight")
-                    h.FillTransparency = 0.4 -- đậm hơn
-                    h.FillColor = Color3.fromRGB(255, 255, 255) -- Màu trắng
-                    h.OutlineColor = Color3.fromRGB(180, 0, 255) -- Viền màu tím
-                    h.OutlineTransparency = 0 -- Viền nét rõ ràng
-                    h.Adornee = char
-                    h.Parent = char
-                end
-            end
-
-            apply(p)
-            p.CharacterAdded:Connect(function()
-                wait(0.5)
-                apply(p)
-            end)
-        end
-    end
-end
-
--- Cập nhật số người chơi và highlight
-local function updateAll()
-    playerCountLabel.Text = "Players: " .. tostring(#Players:GetPlayers())
-    highlightOthers()
-end
-
-updateAll()
-Players.PlayerAdded:Connect(updateAll)
-Players.PlayerRemoving:Connect(updateAll)
-
--- Aim Bot khi nhấn phím E
-local aiming = false
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.E then
-        aiming = true
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input, processed)
-    if input.KeyCode == Enum.KeyCode.E then
-        aiming = false
-    end
-end)
-
--- Smooth Aim (tốc độ nhanh hơn chút nhưng vẫn mượt)
-RunService.RenderStepped:Connect(function()
-    if aiming then
-        local closestPlayer = nil
-        local closestDistance = math.huge
-        local mouseLocation = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                local headPos, onScreen = Camera:WorldToViewportPoint(player.Character.Head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(headPos.X, headPos.Y) - mouseLocation).Magnitude
-                    if dist < closestDistance then
-                        closestDistance = dist
-                        closestPlayer = player
-                    end
-                end
-            end
-        end
-
-        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
-            local targetPos = closestPlayer.Character.Head.Position
-            local smoothSpeed = 0.35 -- tốc độ nhanh hơn
-            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetPos), smoothSpeed)
-        end
-    end
-end)
-
--- Intro: "Made by: $VC" hiển thị ở giữa màn hình trong 3 giây rồi mờ đi
-local introText = Instance.new("TextLabel")
-introText.Size = UDim2.new(0, 600, 0, 80) -- Chữ to hơn
-introText.Position = UDim2.new(0.5, -300, 0.5, -40)
-introText.BackgroundTransparency = 1
-introText.Text = "Made by: $VC"
-introText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Màu chữ trắng
-introText.TextScaled = true
-introText.Font = Enum.Font.GothamBold
-introText.TextStrokeTransparency = 0.3 -- Để viền rõ hơn
-introText.TextStrokeColor3 = Color3.fromRGB(100, 0, 200) -- Viền màu tím đậm
-introText.TextSize = 60 -- Chữ to hơn
-introText.Parent = screenGui
-
--- Fade effect (mờ dần)
-local fadeTime = 3
-local transparency = 1
-
-for i = 1, fadeTime * 60 do
-    introText.TextTransparency = transparency
-    transparency = transparency - (1 / (fadeTime * 60))
-    wait(1/60)
-end
-introText:Destroy()
-
--- Neon (tăng tốc độ di chuyển lên 50 khi bật)
 local NeonGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-NeonGui.Name = "Neon"
-
 local BG = Instance.new("Frame", NeonGui)
+
+-- Giao diện neon
 BG.BackgroundColor3 = Color3.fromRGB(0.098, 0.098, 0.098)
 BG.BorderColor3 = Color3.fromRGB(0.058, 0.058, 0.058)
 BG.BorderSizePixel = 2
@@ -178,8 +55,9 @@ Status.Text = "off"
 Status.TextColor3 = Color3.fromRGB(170, 0, 0)
 Status.TextScaled = true
 
--- Tăng tốc độ di chuyển liên tục khi nhấn Shift
 local Clipon = false
+
+-- Tăng tốc độ di chuyển khi Shift được nhấn
 UserInputService.InputBegan:Connect(function(input, processed)
     if input.KeyCode == Enum.KeyCode.LeftShift then
         if Status.Text == "off" then
@@ -193,12 +71,36 @@ UserInputService.InputBegan:Connect(function(input, processed)
                 character.Humanoid.WalkSpeed = 50
             end
 
-            -- Duy trì tốc độ liên tục
-            RunService.Heartbeat:Connect(function()
-                if Clipon and character and character:FindFirstChild("Humanoid") then
-                    character.Humanoid.WalkSpeed = 50
-                end
-            end)
+            -- Tạo hiệu ứng viền nhấp nháy 7 màu
+            local edge = Instance.new("Frame", BG)
+            edge.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            edge.BorderSizePixel = 5
+            edge.Size = UDim2.new(1, 0, 1, 0)
+            edge.BackgroundTransparency = 0
+            edge.ZIndex = -1
+
+            local colors = {Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 0), 
+                            Color3.fromRGB(0, 255, 255), Color3.fromRGB(0, 0, 255), Color3.fromRGB(255, 0, 255), 
+                            Color3.fromRGB(255, 255, 255)}
+
+            local idx = 1
+            local tweenTime = 0.1
+            local runCount = 0
+
+            -- Tạo hiệu ứng nhấp nháy 7 màu
+            local function tweenColor()
+                RunService.Heartbeat:Connect(function()
+                    if Clipon then
+                        edge.BackgroundColor3 = colors[idx]
+                        idx = idx + 1
+                        if idx > #colors then
+                            idx = 1
+                        end
+                    end
+                end)
+            end
+
+            tweenColor()
         end
     end
 end)
@@ -213,6 +115,20 @@ UserInputService.InputEnded:Connect(function(input, processed)
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.WalkSpeed = 16 -- Tốc độ mặc định của nhân vật
+        end
+
+        -- Mờ dần hiệu ứng viền
+        local edge = BG:FindFirstChildOfClass("Frame")
+        if edge then
+            local fadeTween = game:GetService("TweenService"):Create(
+                edge, 
+                TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
+                {BackgroundTransparency = 1}
+            )
+            fadeTween:Play()
+            fadeTween.Completed:Connect(function()
+                edge:Destroy()
+            end)
         end
     end
 end)
