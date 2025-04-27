@@ -15,7 +15,7 @@ playerCountLabel.TextScaled = true
 playerCountLabel.Text = "Players: 0"
 playerCountLabel.Parent = screenGui
 
--- Highlight người chơi khác
+-- Highlight người chơi khác (ESP) với màu tím
 local function highlightOthers()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
@@ -27,12 +27,12 @@ local function highlightOthers()
                         if v:IsA("Highlight") then v:Destroy() end
                     end
 
-                    -- Tạo highlight mới đậm hơn
+                    -- Tạo highlight mới với màu tím
                     local h = Instance.new("Highlight")
                     h.FillTransparency = 0.4 -- đậm hơn
-                    h.FillColor = Color3.fromRGB(255, 255, 255)
-                    h.OutlineColor = Color3.fromRGB(0, 170, 255)
-                    h.OutlineTransparency = 0 -- viền nét hơn
+                    h.FillColor = Color3.fromRGB(180, 0, 255) -- Màu tím
+                    h.OutlineColor = Color3.fromRGB(100, 0, 200) -- Viền màu tím
+                    h.OutlineTransparency = 0 -- Viền nét rõ ràng
                     h.Adornee = char
                     h.Parent = char
                 end
@@ -110,7 +110,7 @@ introText.TextColor3 = Color3.fromRGB(180, 0, 255) -- Màu tím
 introText.TextScaled = true
 introText.Font = Enum.Font.GothamBold
 introText.TextStrokeTransparency = 0.5
-introText.TextStrokeColor3 = Color3.fromRGB(100, 0, 200)
+introText.TextStrokeColor3 = Color3.fromRGB(100, 0, 200) -- Viền màu tím
 introText.Parent = screenGui
 
 -- Fade effect (mờ dần)
@@ -124,11 +124,11 @@ for i = 1, fadeTime * 60 do
 end
 introText:Destroy()
 
--- Neon (tăng tốc độ di chuyển lên 100 khi bật)
-local NoclipGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-NoclipGui.Name = "Neon"
+-- Neon (tăng tốc độ di chuyển lên 50 khi bật)
+local NeonGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+NeonGui.Name = "Neon"
 
-local BG = Instance.new("Frame", NoclipGui)
+local BG = Instance.new("Frame", NeonGui)
 BG.BackgroundColor3 = Color3.fromRGB(0.098, 0.098, 0.098)
 BG.BorderColor3 = Color3.fromRGB(0.058, 0.058, 0.058)
 BG.BorderSizePixel = 2
@@ -145,7 +145,7 @@ Title.Font = Enum.Font.Highway
 Title.Text = "Neon"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
-Title.TextStrokeColor3 = Color3.fromRGB(80, 0, 180)
+Title.TextStrokeColor3 = Color3.fromRGB(80, 0, 180) -- Viền màu tím
 Title.TextStrokeTransparency = 0
 
 local Toggle = Instance.new("TextButton", BG)
@@ -157,7 +157,7 @@ Toggle.Font = Enum.Font.Highway
 Toggle.Text = "Toggle"
 Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 Toggle.TextScaled = true
-Toggle.TextStrokeColor3 = Color3.fromRGB(80, 0, 180)
+Toggle.TextStrokeColor3 = Color3.fromRGB(80, 0, 180) -- Viền màu tím
 
 local StatusPF = Instance.new("TextLabel", BG)
 StatusPF.BackgroundTransparency = 1
@@ -177,7 +177,7 @@ Status.Text = "off"
 Status.TextColor3 = Color3.fromRGB(170, 0, 0)
 Status.TextScaled = true
 
--- Tăng tốc độ di chuyển
+-- Tăng tốc độ di chuyển liên tục
 local Clipon = false
 Toggle.MouseButton1Click:Connect(function()
     if Status.Text == "off" then
@@ -185,12 +185,19 @@ Toggle.MouseButton1Click:Connect(function()
         Status.Text = "on"
         Status.TextColor3 = Color3.fromRGB(0, 255, 0)
         
-        -- Tăng tốc độ di chuyển lên 100
+        -- Tăng tốc độ di chuyển lên 50
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("Humanoid") then
-            character.Humanoid.WalkSpeed = 100
+            character.Humanoid.WalkSpeed = 50
         end
 
+        -- Duy trì tốc độ liên tục
+        RunService.Heartbeat:Connect(function()
+            if Clipon and character and character:FindFirstChild("Humanoid") then
+                character.Humanoid.WalkSpeed = 50
+            end
+        end)
+        
     else
         Clipon = false
         Status.Text = "off"
