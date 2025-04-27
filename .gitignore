@@ -102,15 +102,16 @@ end)
 
 -- Intro: "Made by: $VC" hiển thị ở giữa màn hình trong 3 giây rồi mờ đi
 local introText = Instance.new("TextLabel")
-introText.Size = UDim2.new(0, 400, 0, 50)
-introText.Position = UDim2.new(0.5, -200, 0.5, -25)
+introText.Size = UDim2.new(0, 600, 0, 80) -- Chữ to hơn
+introText.Position = UDim2.new(0.5, -300, 0.5, -40)
 introText.BackgroundTransparency = 1
 introText.Text = "Made by: $VC"
-introText.TextColor3 = Color3.fromRGB(180, 0, 255) -- Màu tím
+introText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Màu chữ trắng
 introText.TextScaled = true
 introText.Font = Enum.Font.GothamBold
-introText.TextStrokeTransparency = 0.5
-introText.TextStrokeColor3 = Color3.fromRGB(100, 0, 200) -- Viền màu tím
+introText.TextStrokeTransparency = 0.3 -- Để viền rõ hơn
+introText.TextStrokeColor3 = Color3.fromRGB(100, 0, 200) -- Viền màu tím đậm
+introText.TextSize = 60 -- Chữ to hơn
 introText.Parent = screenGui
 
 -- Fade effect (mờ dần)
